@@ -17,6 +17,8 @@ def main(args):
     PHYS_EPSILON = 0.05  # Used for sampling using physician pol as eps greedy
     n_actions = Action.NUM_ACTIONS_TOTAL
     n_components = 2
+    n_steps = args.nsteps
+    n_sims = args.nsims
 
     with open(args.physpol, "rb") as f:
         mdict = pickle.load(f)
@@ -46,20 +48,44 @@ def main(args):
         emp_tx_totals,
         emp_r_totals,
     ) = dgen.simulate(
-        args.nsims,
-        args.nsteps,
+        n_sims,
+        n_steps,
         policy=physPolSoft,
         policy_idx_type="full",
         p_diabetes=PROB_DIAB,
         output_state_idx_type="full",
         use_tqdm=False,
-        state_as_vectors=True,
-    )  # True, tqdm_desc='Behaviour Policy Simulation')
-    # results = pd.DataFrame()
-    # for i in range(args.nsims)
-    print(states[0])
-    states_reshaped = np.reshape(states, (args.nsteps * args.nsims, 8))
-    print(states_reshaped[0:20])
+        noisy_state_vecs=True,
+    )
+    states_reshaped = np.reshape(states, ((n_steps + 1) * n_sims, 8))
+    ids = np.reshape(
+        [[i] * (n_steps + 1) for i in range(n_sims)],
+        ((n_steps + 1) * n_sims, 1),
+    )
+    data = np.append(states_reshaped, ids, axis=1)
+    actions = np.reshape(
+        [np.append(i, -1) for i in actions], ((n_steps + 1) * n_sims, 1)
+    )
+    data = np.append(data, actions, axis=1)
+    times = np.reshape([range(n_steps + 1)] * n_sims, ((n_steps + 1) * n_sims, 1))
+    data = np.append(data, times, axis=1)
+    df = pd.DataFrame(
+        columns=[
+            "hr_state",
+            "sysbp_state",
+            "percoxyg_state",
+            "glucose_state",
+            "antibiotic_state",
+            "vaso_state",
+            "vent_state",
+            "diabetic_idx",
+            "id",
+            "A_t",
+            "t",
+        ],
+        data=data,
+    )
+    df.to_csv(f"{args.exportdir}/data.csv", index=False)
 
 
 if __name__ == "__main__":
@@ -68,7 +94,7 @@ if __name__ == "__main__":
         "--nsteps", help="maximum number of steps in trajectory", type=int, default=20
     )
     parser.add_argument(
-        "--nsims", help="number of trajectories", type=int, default=1000
+        "--nsims", help="number of trajectories", type=int, default=10000
     )
     parser.add_argument(
         "--physpol",
@@ -76,5 +102,6 @@ if __name__ == "__main__":
         type=str,
         default="/data/localhost/taufiq/gumbel-max-scm-exportdir/data/diab_txr_mats-replication.pkl",
     )
+    parser.add_argument("exportdir", help="Dir to store csv data", type=str)
     args = parser.parse_args()
     main(args)

@@ -1,4 +1,5 @@
 import numpy as np
+from .utils.HelperFunctions import noisy
 
 """
 Includes blood glucose level proxy for diabetes: 0-3
@@ -255,3 +256,20 @@ class State(object):
                 self.diabetic_idx,
             ]
         ).astype(int)
+
+    def get_xt(self):
+        categ_num = np.array([3, 3, 2, 5, 2, 2, 2])
+        return np.array(
+            [
+                noisy(self.hr_state, max_val=categ_num[0] - 1),
+                noisy(self.sysbp_state, max_val=categ_num[1] - 1),
+                noisy(self.percoxyg_state, max_val=categ_num[2] - 1),
+                noisy(self.glucose_state, max_val=categ_num[3] - 1),
+                self.antibiotic_state,
+                self.vaso_state,
+                self.vent_state,
+            ]
+        ).astype(int)
+
+    def get_xt_ut(self):
+        return np.append(self.get_xt(), self.diabetic_idx).astype(int)

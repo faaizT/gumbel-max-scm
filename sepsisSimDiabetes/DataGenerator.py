@@ -29,19 +29,19 @@ class DataGenerator(object):
         output_state_idx_type="obs",
         use_tqdm=False,
         tqdm_desc="",
-        state_as_vectors=False,
+        noisy_state_vecs=False,
     ):
         """
         policy is an array of probabilities
         """
         assert policy is not None, "Please specify a policy"
         assert (
-            state_as_vectors and output_state_idx_type == "full" or not state_as_vectors
+            noisy_state_vecs and output_state_idx_type == "full" or not noisy_state_vecs
         )
 
         # Set the default value of states / actions to negative -1,
         # corresponding to None
-        if state_as_vectors:
+        if noisy_state_vecs:
             iter_states = np.ones((num_iters, max_num_steps + 1, 8), dtype=int) * (-1)
         else:
             iter_states = np.ones((num_iters, max_num_steps + 1, 1), dtype=int) * (-1)
@@ -81,8 +81,8 @@ class DataGenerator(object):
             mdp.state = mdp.get_new_state()
             this_diabetic_idx = mdp.state.diabetic_idx
             iter_component[itr, :] = this_diabetic_idx  # Never changes
-            if state_as_vectors:
-                iter_states[itr, 0, :] = mdp.state.get_full_state_vector()
+            if noisy_state_vecs:
+                iter_states[itr, 0, :] = mdp.state.get_xt_ut()
             else:
                 iter_states[itr, 0, 0] = mdp.state.get_state_idx(
                     idx_type=output_state_idx_type
@@ -102,8 +102,8 @@ class DataGenerator(object):
                 ).astype(int)
 
                 iter_actions[itr, step, 0] = this_action_idx
-                if state_as_vectors:
-                    iter_states[itr, step + 1, :] = mdp.state.get_full_state_vector()
+                if noisy_state_vecs:
+                    iter_states[itr, step + 1, :] = mdp.state.get_xt_ut()
                 else:
                     iter_states[itr, step + 1, 0] = this_to_state_idx
 
