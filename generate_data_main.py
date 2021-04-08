@@ -90,6 +90,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("exportdir", help="Dir to store csv data", type=str)
     parser.add_argument(
         "--nsteps", help="maximum number of steps in trajectory", type=int, default=20
     )
@@ -102,6 +103,5 @@ if __name__ == "__main__":
         type=str,
         default="/data/localhost/taufiq/gumbel-max-scm-exportdir/data/diab_txr_mats-replication.pkl",
     )
-    parser.add_argument("exportdir", help="Dir to store csv data", type=str)
     args = parser.parse_args()
     main(args)
