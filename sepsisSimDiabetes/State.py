@@ -246,6 +246,7 @@ class State(object):
     def get_full_state_vector(self):
         return np.array(
             [
+                self.diabetic_idx,
                 self.hr_state,
                 self.sysbp_state,
                 self.percoxyg_state,
@@ -253,7 +254,6 @@ class State(object):
                 self.antibiotic_state,
                 self.vaso_state,
                 self.vent_state,
-                self.diabetic_idx,
             ]
         ).astype(int)
 
